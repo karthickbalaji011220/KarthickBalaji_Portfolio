@@ -16,7 +16,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.3
       - key: RENDER_EXTERNAL_URL
-        value: https://YOUR-APP-NAME.onrender.com   # ← change this
+        sync: false    # set your actual Render URL manually in dashboard
 
       # ── Admin superuser (set these in Render Dashboard) ──────────────
       - key: DJANGO_SUPERUSER_USERNAME

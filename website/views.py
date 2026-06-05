@@ -104,9 +104,9 @@ def send_contact_email(request):
 def download_resume(request):
     profile = get_profile()
     if profile and profile.resume_file:
-        file_path = profile.resume_file.path
-        if os.path.exists(file_path):
-            response = FileResponse(open(file_path, 'rb'), as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="resume.pdf"'
-            return response
+        try:
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(profile.resume_file.url)
+        except Exception:
+            raise Http404("Resume not found")
     raise Http404("Resume not found")
