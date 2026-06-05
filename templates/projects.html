@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects - {% if profile %}{{ profile.name }}{% else %}Portfolio{% endif %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #050816; --bg2: #0a0f2e; --bg3: #0d1333;
+    --accent: #6c63ff; --accent2: #00d4ff; --accent3: #ff6584;
+    --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.08);
+    --text: #e2e8f0; --text-muted: #94a3b8;
+    --gradient: linear-gradient(135deg, #6c63ff, #00d4ff);
+    --shadow: 0 8px 32px rgba(108,99,255,0.2);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(0,212,255,0.06) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(5,8,22,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 0 2rem; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .logo { font-size: 1.5rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s; position: relative; padding: 4px 0; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--gradient); transition: width 0.3s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+  .nav-resume { background: var(--gradient); color: #fff !important; padding: 8px 20px !important; border-radius: 50px; font-weight: 600 !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { display: block; width: 25px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.3s; }
+  .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .page-hero { padding: 140px 2rem 60px; background: linear-gradient(to bottom, var(--bg3), var(--bg)); border-bottom: 1px solid var(--glass-border); position: relative; z-index: 1; }
+  .page-hero-inner { max-width: 1200px; margin: 0 auto; }
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+  .breadcrumb a { color: var(--accent2); text-decoration: none; }
+  .page-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; margin-bottom: 1rem; }
+  .page-title span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .page-subtitle { color: var(--text-muted); font-size: 1.1rem; }
+  .content { position: relative; z-index: 1; padding: 60px 2rem; }
+  .section-inner { max-width: 1200px; margin: 0 auto; }
+
+  /* Filter tabs */
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 3rem; }
+  .filter-btn {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    color: var(--text-muted); padding: 8px 20px; border-radius: 50px;
+    cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.3s;
+    font-family: inherit;
+  }
+  .filter-btn:hover, .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Projects grid */
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 2rem; }
+  .project-card {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 20px; overflow: hidden; transition: all 0.4s; position: relative;
+  }
+  .project-card:hover { transform: translateY(-10px); border-color: rgba(108,99,255,0.4); box-shadow: 0 30px 60px rgba(108,99,255,0.15); }
+  .project-img { height: 220px; overflow: hidden; position: relative; background: var(--bg3); }
+  .project-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .project-card:hover .project-img img { transform: scale(1.08); }
+  .project-img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(5,8,22,0.6)); }
+  .project-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(0,212,255,0.1)); }
+  .project-body { padding: 1.75rem; }
+  .project-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.6rem; }
+  .project-desc { color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; margin-bottom: 1.25rem; }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
+  .tag { background: rgba(108,99,255,0.12); color: var(--accent); padding: 3px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 500; border: 1px solid rgba(108,99,255,0.2); }
+  .project-footer { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .btn-view { display: inline-flex; align-items: center; gap: 6px; background: var(--gradient); color: #fff; padding: 10px 22px; border-radius: 50px; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; }
+  .btn-view:hover { transform: translateX(4px); box-shadow: 0 8px 20px rgba(108,99,255,0.3); }
+  .btn-link { display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted); text-decoration: none; font-size: 0.82rem; transition: color 0.3s; padding: 6px 0; }
+  .btn-link:hover { color: var(--accent2); }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 5rem 2rem; color: var(--text-muted); }
+  .empty-icon { font-size: 4rem; margin-bottom: 1rem; display: block; }
+
+  /* Back */
+  .back-section { padding: 2rem 0 4rem; }
+  .btn-back { display: inline-flex; align-items: center; gap: 8px; background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); padding: 12px 24px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+  .btn-back:hover { border-color: var(--accent); color: var(--accent); transform: translateX(-4px); }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s; }
+  .reveal.visible { opacity: 1; transform: none; }
+  footer { background: var(--bg3); border-top: 1px solid var(--glass-border); padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  footer span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600; }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────── */
+
+  /* Tablet landscape (≤1024px) */
+  @media (max-width: 1024px) {
+    .projects-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .section-inner { padding: 0 1rem; }
+  }
+
+  /* Mobile (≤768px) */
+  @media (max-width: 768px) {
+    .nav-links { display: none; flex-direction: column; position: fixed; top: 70px; left: 0; right: 0; background: rgba(5,8,22,0.98); border-bottom: 1px solid var(--glass-border); padding: 1rem 0; z-index: 999; }
+    .nav-links.open { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links a { display: block; padding: 12px 2rem !important; font-size: 1rem; }
+    .hamburger { display: flex; }
+
+    .page-hero { padding: 80px 1.2rem 40px; }
+    .page-title { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+    .page-subtitle { font-size: 0.9rem; }
+
+    .projects-grid { grid-template-columns: 1fr; }
+    .project-card { max-width: 100%; }
+    .project-card-body { padding: 1.2rem; }
+    .project-card-tech { gap: 0.4rem; }
+    .project-card-tech span { font-size: 0.72rem; padding: 3px 10px; }
+    .project-card-links { gap: 0.6rem; flex-wrap: wrap; }
+
+    section { padding: 50px 1.2rem; }
+  }
+
+  /* Small mobile (≤480px) */
+  @media (max-width: 480px) {
+    .logo { font-size: 1rem; max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .projects-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .project-card-title { font-size: 1rem; }
+    .project-card-desc { font-size: 0.85rem; }
+    .page-title { font-size: 1.8rem; }
+    footer { padding: 1.5rem 1rem; font-size: 0.8rem; }
+  }
+
+  /* Very small (≤360px) */
+  @media (max-width: 360px) {
+    .page-title { font-size: 1.5rem; }
+    .project-card-tech span { font-size: 0.65rem; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">{% if profile %}{{ profile.name }}{% else %}Karthick Balaji T{% endif %}</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about/">About</a></li>
+      <li><a href="/projects/" class="active">Projects</a></li>
+      <li><a href="/contact/">Contact</a></li>
+      <li><a href="/download-resume/" class="nav-resume">Resume ↓</a></li>
+    </ul>
+    <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb"><a href="/">Home</a> <span>/</span> <span>Projects</span></div>
+    <h1 class="page-title">My <span>Projects</span></h1>
+    <p class="page-subtitle">A showcase of my work — from full stack apps to AI-powered tools.</p>
+  </div>
+</div>
+
+<div class="content">
+  <div class="section-inner">
+    {% if projects %}
+    <div class="filter-bar" id="filterBar">
+      <button class="filter-btn active" data-filter="all">All Projects</button>
+    </div>
+    <div class="projects-grid" id="projectsGrid">
+      {% for project in projects %}
+      <div class="project-card reveal" data-tech="{{ project.tech_stack|lower }}">
+        <div class="project-img">
+          {% if project.project_image %}
+            <img src="{{ project.project_image.url }}" alt="{{ project.title }}">
+          {% else %}
+            <div class="project-img-placeholder">🚀</div>
+          {% endif %}
+          <div class="project-img-overlay"></div>
+        </div>
+        <div class="project-body">
+          <div class="project-title">{{ project.title }}</div>
+          <div class="project-desc">{{ project.short_description }}</div>
+          <div class="project-tags">
+            {% for tech in project.get_tech_list %}
+              <span class="tag">{{ tech }}</span>
+            {% endfor %}
+          </div>
+          <div class="project-footer">
+            <a href="/project/{{ project.slug }}/" class="btn-view">View Details →</a>
+            {% if project.github_link %}<a href="{{ project.github_link }}" target="_blank" class="btn-link">🐙 GitHub</a>{% endif %}
+            {% if project.live_demo_link %}<a href="{{ project.live_demo_link }}" target="_blank" class="btn-link">🌐 Live Demo</a>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <span class="empty-icon">🚀</span>
+      <p>No projects yet. Add them via Django Admin.</p>
+    </div>
+    {% endif %}
+
+    <div class="back-section">
+      <a href="/" class="btn-back">← Back to Home</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 <span>{% if profile %}{{ profile.name }}{% else %}Karthick Balaji{% endif %}</span>. Built with Django &amp; ❤️</p>
+</footer>
+
+<script>
+  document.getElementById('hamburger').addEventListener('click', function() {
+    this.classList.toggle('open');
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+
+  // Scroll reveal
+  new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1 }).observe || document.querySelectorAll('.reveal').forEach(el => {
+    new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, {threshold:0.1}).observe(el);
+  });
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

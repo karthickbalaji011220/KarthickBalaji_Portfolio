@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About - {% if profile %}{{ profile.name }}{% else %}Portfolio{% endif %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #050816; --bg2: #0a0f2e; --bg3: #0d1333;
+    --accent: #6c63ff; --accent2: #00d4ff; --accent3: #ff6584;
+    --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.08);
+    --text: #e2e8f0; --text-muted: #94a3b8;
+    --gradient: linear-gradient(135deg, #6c63ff, #00d4ff);
+    --gradient2: linear-gradient(135deg, #ff6584, #6c63ff);
+    --shadow: 0 8px 32px rgba(108,99,255,0.2);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0,212,255,0.06) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(5,8,22,0.92); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border); padding: 0 2rem;
+  }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .logo { font-size: 1.5rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s; position: relative; padding: 4px 0; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--gradient); transition: width 0.3s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+  .nav-resume { background: var(--gradient); color: #fff !important; padding: 8px 20px !important; border-radius: 50px; font-weight: 600 !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { display: block; width: 25px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.3s; }
+  .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+  /* Page hero */
+  .page-hero {
+    padding: 140px 2rem 60px; background: linear-gradient(to bottom, var(--bg3), var(--bg));
+    border-bottom: 1px solid var(--glass-border); position: relative; z-index: 1;
+  }
+  .page-hero-inner { max-width: 1200px; margin: 0 auto; }
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+  .breadcrumb a { color: var(--accent2); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .page-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; margin-bottom: 1rem; }
+  .page-title span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .page-subtitle { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; }
+
+  /* Content */
+  .content { position: relative; z-index: 1; }
+  section { padding: 60px 2rem; }
+  .section-inner { max-width: 1200px; margin: 0 auto; }
+  .section-header { margin-bottom: 2.5rem; }
+  .section-label { font-size: 0.8rem; font-weight: 600; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; display: block; margin-bottom: 0.5rem; }
+  .section-title { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; }
+  .section-title span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .section-line { width: 60px; height: 3px; background: var(--gradient); border-radius: 2px; margin-top: 0.75rem; }
+
+  /* Profile section */
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .profile-image-wrap { position: sticky; top: 90px; }
+  .profile-image-frame {
+    border-radius: 20px; overflow: hidden; position: relative;
+    background: var(--glass); border: 1px solid var(--glass-border);
+  }
+  .profile-image-frame::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(5,8,22,0.7));
+    z-index: 1;
+  }
+  .profile-image-frame img { width: 100%; height: auto; max-height: 520px; object-fit: contain; display: block; background: var(--bg3); }
+  .profile-img-placeholder { width: 100%; height: 350px; display: flex; align-items: center; justify-content: center; font-size: 6rem; background: var(--bg3); }
+  .profile-meta { position: absolute; bottom: 0; left: 0; right: 0; padding: 2rem; z-index: 2; }
+  .profile-meta-name { font-size: 1.5rem; font-weight: 800; }
+  .profile-meta-role { color: var(--accent2); font-size: 0.95rem; font-weight: 600; }
+  .social-links { display: flex; gap: 0.75rem; margin-top: 1rem; }
+  .social-btn {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    color: var(--text); text-decoration: none; padding: 8px 16px;
+    border-radius: 50px; font-size: 0.8rem; font-weight: 600;
+    transition: all 0.3s; backdrop-filter: blur(10px);
+  }
+  .social-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .profile-info { }
+  .bio-text { color: var(--text-muted); line-height: 1.9; font-size: 0.97rem; }
+  .bio-text + .bio-text { margin-top: 1rem; }
+  .objective-box {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0;
+    padding: 1.5rem; margin: 2rem 0; line-height: 1.8;
+    color: var(--text-muted); font-style: italic;
+  }
+
+  /* Skills */
+  .skills-section { background: var(--bg2); }
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+  .skill-card {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 1.25rem; text-align: center; transition: all 0.3s;
+  }
+  .skill-card:hover { transform: translateY(-6px); border-color: var(--accent); box-shadow: 0 15px 30px rgba(108,99,255,0.15); }
+  .skill-icon { font-size: 1.8rem; margin-bottom: 0.6rem; display: block; }
+  .skill-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.6rem; }
+  .skill-bar { background: rgba(255,255,255,0.08); border-radius: 50px; height: 5px; }
+  .skill-fill { height: 100%; background: var(--gradient); border-radius: 50px; width: 0; transition: width 1.5s ease; }
+  .skill-pct { font-size: 0.72rem; color: var(--accent2); margin-top: 3px; font-weight: 600; }
+
+  /* Experience */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--accent), var(--accent2), transparent); }
+  .timeline-item { position: relative; padding: 0 0 2.5rem 2rem; }
+  .timeline-dot { position: absolute; left: -2.4rem; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--gradient); border: 2px solid var(--bg); box-shadow: 0 0 12px rgba(108,99,255,0.5); }
+  .timeline-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; transition: all 0.3s; }
+  .timeline-card:hover { border-color: rgba(108,99,255,0.3); transform: translateX(5px); }
+  .t-role { font-weight: 700; font-size: 1.05rem; }
+  .t-company { color: var(--accent2); font-weight: 600; font-size: 0.9rem; margin: 2px 0; }
+  .t-dur { background: rgba(108,99,255,0.15); color: var(--accent); padding: 3px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin: 6px 0; }
+  .t-desc { color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; margin-top: 0.5rem; }
+
+  /* Education */
+  .edu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+  .edu-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.75rem; transition: all 0.3s; position: relative; overflow: hidden; }
+  .edu-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient); }
+  .edu-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+  .edu-degree { font-weight: 700; font-size: 1.05rem; margin-bottom: 0.4rem; }
+  .edu-inst { color: var(--accent2); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .edu-year { color: var(--text-muted); font-size: 0.85rem; }
+  .edu-desc { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.75rem; line-height: 1.7; }
+
+  /* Certs */
+  .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+  .cert-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.25rem; transition: all 0.3s; display: flex; gap: 1rem; }
+  .cert-card:hover { transform: translateY(-4px); border-color: rgba(108,99,255,0.3); }
+  .cert-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--gradient); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .cert-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+  .cert-issuer { color: var(--accent2); font-size: 0.82rem; }
+  .cert-year { color: var(--text-muted); font-size: 0.78rem; margin-top: 0.2rem; }
+
+  /* Achievements */
+  .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+  .ach-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.25rem; transition: all 0.3s; }
+  .ach-card:hover { transform: translateY(-4px); border-color: rgba(255,101,132,0.3); }
+  .ach-bullet { width: 38px; height: 38px; border-radius: 10px; background: var(--gradient2); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.75rem; }
+  .ach-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem; }
+  .ach-desc { color: var(--text-muted); font-size: 0.85rem; line-height: 1.7; }
+
+  /* Back btn */
+  .back-section { padding: 2rem 2rem 4rem; }
+  .btn-back { display: inline-flex; align-items: center; gap: 8px; background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); padding: 12px 24px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+  .btn-back:hover { border-color: var(--accent); color: var(--accent); transform: translateX(-4px); }
+
+  /* Divider */
+  .divider { height: 1px; background: linear-gradient(to right, transparent, var(--glass-border), transparent); max-width: 1200px; margin: 0 auto; }
+
+  /* Animations */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s; }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-left { opacity: 0; transform: translateX(-30px); transition: opacity 0.6s, transform 0.6s; }
+  .reveal-left.visible { opacity: 1; transform: none; }
+  .reveal-right { opacity: 0; transform: translateX(30px); transition: opacity 0.6s, transform 0.6s; }
+  .reveal-right.visible { opacity: 1; transform: none; }
+
+  footer { background: var(--bg3); border-top: 1px solid var(--glass-border); padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  footer span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600; }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────── */
+
+  /* Tablet landscape (≤1024px) */
+  @media (max-width: 1024px) {
+    .profile-grid { gap: 2rem; }
+    .bio-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    .skills-grid { grid-template-columns: repeat(3, 1fr); }
+    .edu-grid { grid-template-columns: 1fr; }
+    .exp-grid { grid-template-columns: 1fr; }
+    .cert-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Tablet portrait (≤900px) */
+  @media (max-width: 900px) {
+    .profile-grid { grid-template-columns: 1fr; }
+    .profile-image-wrap { position: static; display: flex; justify-content: center; }
+    .profile-image-frame { max-width: 420px; width: 100%; }
+    .profile-image-frame img { height: auto; max-height: 380px; }
+    .profile-img-placeholder { height: 280px; }
+    .page-hero-inner { padding: 0 1.5rem; }
+    .section-inner { padding: 0 1rem; }
+  }
+
+  /* Mobile (≤768px) */
+  @media (max-width: 768px) {
+    /* Nav */
+    .nav-links { display: none; flex-direction: column; position: fixed; top: 70px; left: 0; right: 0; background: rgba(5,8,22,0.98); border-bottom: 1px solid var(--glass-border); padding: 1rem 0; z-index: 999; }
+    .nav-links.open { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links a { display: block; padding: 12px 2rem !important; font-size: 1rem; }
+    .hamburger { display: flex; }
+
+    /* Page hero */
+    .page-hero { padding: 80px 1.2rem 40px; }
+    .page-title { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+    .page-subtitle { font-size: 0.9rem; }
+
+    /* Profile */
+    .profile-grid { grid-template-columns: 1fr; }
+    .profile-image-frame { max-width: 360px; }
+    .profile-image-frame img { max-height: 320px; }
+    .profile-meta-name { font-size: 1.2rem; }
+
+    /* Skills */
+    .skills-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .skill-card { padding: 1.2rem; }
+
+    /* Education */
+    .edu-grid { grid-template-columns: 1fr; }
+    .edu-card { padding: 1.2rem; }
+
+    /* Experience */
+    .exp-grid { grid-template-columns: 1fr; }
+    .exp-card { padding: 1.2rem; }
+
+    /* Certifications */
+    .cert-grid { grid-template-columns: 1fr; }
+
+    /* Achievements */
+    .achievements-grid { grid-template-columns: 1fr; }
+
+    section { padding: 50px 1.2rem; }
+  }
+
+  /* Small mobile (≤480px) */
+  @media (max-width: 480px) {
+    .logo { font-size: 1rem; max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-image-frame { max-width: 100%; }
+    .profile-image-frame img { max-height: 280px; }
+    .skills-grid { grid-template-columns: repeat(2, 1fr); }
+    .cert-grid { grid-template-columns: 1fr; }
+    .section-title { font-size: clamp(1.4rem, 5vw, 2rem); }
+    footer { padding: 1.5rem 1rem; font-size: 0.8rem; }
+  }
+
+  /* Very small (≤360px) */
+  @media (max-width: 360px) {
+    .skills-grid { grid-template-columns: 1fr 1fr; }
+    .profile-meta-role { font-size: 0.8rem; }
+    .page-title { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">{% if profile %}{{ profile.name }}{% else %}Karthick Balaji T{% endif %}</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about/" class="active">About</a></li>
+      <li><a href="/projects/">Projects</a></li>
+      <li><a href="/contact/">Contact</a></li>
+      <li><a href="/download-resume/" class="nav-resume">Resume ↓</a></li>
+    </ul>
+    <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb">
+      <a href="/">Home</a> <span>/</span> <span>About</span>
+    </div>
+    <h1 class="page-title">About <span>Me</span></h1>
+    <p class="page-subtitle">Get to know my story, skills, and what drives me forward.</p>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Profile + Bio -->
+  <section>
+    <div class="section-inner">
+      <div class="profile-grid">
+        <div class="profile-image-wrap reveal-left">
+          <div class="profile-image-frame">
+            {% if profile and profile.about_image %}
+              <img src="{{ profile.about_image.url }}" alt="{{ profile.name }}">
+            {% elif profile and profile.profile_image %}
+              <img src="{{ profile.profile_image.url }}" alt="{{ profile.name }}">
+            {% else %}
+              <div class="profile-img-placeholder">👨‍💻</div>
+            {% endif %}
+            <div class="profile-meta">
+              <div class="profile-meta-name">{% if profile %}{{ profile.name }}{% else %}Karthick Balaji{% endif %}</div>
+              <div class="profile-meta-role">{% if profile %}{{ profile.role }}{% else %}Full Stack Developer{% endif %}</div>
+              <div class="social-links">
+                {% if profile and profile.linkedin %}<a href="{{ profile.linkedin }}" target="_blank" class="social-btn">LinkedIn</a>{% endif %}
+                {% if profile and profile.github %}<a href="{{ profile.github }}" target="_blank" class="social-btn">GitHub</a>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="profile-info reveal-right">
+          <div class="section-header">
+            <span class="section-label">My Story</span>
+            <h2 class="section-title">Full <span>Biography</span></h2>
+            <div class="section-line"></div>
+          </div>
+          <p class="bio-text">{% if profile %}{{ profile.bio }}{% else %}Full Stack Developer with expertise in Python, Django, React.js, and Java Spring Boot. Passionate about building production-ready web applications and integrating AI capabilities.{% endif %}</p>
+          {% if profile and profile.career_objective %}
+          <div class="objective-box">
+            <strong style="color:var(--accent2);display:block;margin-bottom:0.5rem">💡 Career Objective</strong>
+            {{ profile.career_objective }}
+          </div>
+          {% endif %}
+          <a href="/download-resume/" class="btn-back" style="margin-top:1.5rem">⬇ Download Resume</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Skills -->
+  {% if skills %}
+  <section class="skills-section" id="skills">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Technical expertise</span>
+        <h2 class="section-title">Skills &amp; <span>Technologies</span></h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="skills-grid">
+        {% for skill in skills %}
+        <div class="skill-card reveal">
+          <span class="skill-icon">{% if skill.icon %}{{ skill.icon }}{% else %}⚡{% endif %}</span>
+          <div class="skill-name">{{ skill.skill_name }}</div>
+          <div class="skill-bar"><div class="skill-fill" data-width="{{ skill.percentage }}"></div></div>
+          <div class="skill-pct">{{ skill.percentage }}%</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+  {% endif %}
+
+  <!-- Experience -->
+  {% if experiences %}
+  <section id="experience">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Career timeline</span>
+        <h2 class="section-title">Work <span>Experience</span></h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="timeline">
+        {% for exp in experiences %}
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="t-role">{{ exp.role }}</div>
+            <div class="t-company">{{ exp.company }}</div>
+            <span class="t-dur">{{ exp.duration }}</span>
+            {% if exp.description %}<div class="t-desc">{{ exp.description }}</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+  {% endif %}
+
+  <!-- Education -->
+  {% if educations %}
+  <section id="education" style="background:var(--bg2)">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Academic background</span>
+        <h2 class="section-title">My <span>Education</span></h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="edu-grid">
+        {% for edu in educations %}
+        <div class="edu-card reveal">
+          <div class="edu-degree">{{ edu.degree }}</div>
+          <div class="edu-inst">🎓 {{ edu.institution }}</div>
+          <div class="edu-year">📅 {{ edu.year }}</div>
+          {% if edu.description %}<div class="edu-desc">{{ edu.description }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+  {% endif %}
+
+  <!-- Certifications -->
+  {% if certifications %}
+  <section id="certifications">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Credentials</span>
+        <h2 class="section-title">Certifications <span>&amp; Courses</span></h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="cert-grid">
+        {% for cert in certifications %}
+        <div class="cert-card reveal">
+          <div class="cert-icon">🏆</div>
+          <div>
+            <div class="cert-title">{{ cert.title }}</div>
+            <div class="cert-issuer">{{ cert.issuer }}</div>
+            <div class="cert-year">{{ cert.year }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+  {% endif %}
+
+  <!-- Achievements -->
+  {% if achievements %}
+  <section id="achievements" style="background:var(--bg2)">
+    <div class="section-inner">
+      <div class="section-header reveal">
+        <span class="section-label">Milestones</span>
+        <h2 class="section-title">Key <span>Achievements</span></h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="ach-grid">
+        {% for ach in achievements %}
+        <div class="ach-card reveal">
+          <div class="ach-bullet">🎯</div>
+          <div class="ach-title">{{ ach.title }}</div>
+          {% if ach.description %}<div class="ach-desc">{{ ach.description }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Back -->
+  <div class="back-section section-inner">
+    <a href="/" class="btn-back">← Back to Home</a>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 <span>{% if profile %}{{ profile.name }}{% else %}Karthick Balaji{% endif %}</span>. Built with Django &amp; ❤️</p>
+</footer>
+
+<script>
+  const hamburger = document.getElementById('hamburger');
+  const navLinks = document.getElementById('navLinks');
+  hamburger.addEventListener('click', () => { hamburger.classList.toggle('open'); navLinks.classList.toggle('open'); });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => observer.observe(el));
+
+  const skillObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.skill-fill').forEach(fill => { fill.style.width = fill.dataset.width + '%'; });
+        skillObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  const skillsEl = document.getElementById('skills');
+  if (skillsEl) skillObserver.observe(skillsEl);
+</script>
+</body>
+</html>

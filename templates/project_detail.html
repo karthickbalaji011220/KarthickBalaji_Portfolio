@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ project.title }} - {% if profile %}{{ profile.name }}{% else %}Portfolio{% endif %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #050816; --bg2: #0a0f2e; --bg3: #0d1333;
+    --accent: #6c63ff; --accent2: #00d4ff; --accent3: #ff6584;
+    --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.08);
+    --text: #e2e8f0; --text-muted: #94a3b8;
+    --gradient: linear-gradient(135deg, #6c63ff, #00d4ff);
+    --shadow: 0 8px 32px rgba(108,99,255,0.2);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(0,212,255,0.06) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(5,8,22,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 0 2rem; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .logo { font-size: 1.5rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s; position: relative; padding: 4px 0; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--gradient); transition: width 0.3s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-resume { background: var(--gradient); color: #fff !important; padding: 8px 20px !important; border-radius: 50px; font-weight: 600 !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { display: block; width: 25px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.3s; }
+  .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+  /* Hero */
+  .project-hero {
+    padding: 110px 2rem 0; position: relative; z-index: 1;
+    background: linear-gradient(to bottom, var(--bg3), var(--bg));
+  }
+  .hero-inner { max-width: 1200px; margin: 0 auto; }
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--accent2); text-decoration: none; }
+  .project-img-hero {
+    width: 100%; max-height: 480px; object-fit: cover; border-radius: 20px;
+    border: 1px solid var(--glass-border); display: block;
+  }
+  .project-img-placeholder-hero {
+    width: 100%; height: 360px; border-radius: 20px; display: flex; align-items: center;
+    justify-content: center; font-size: 5rem;
+    background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(0,212,255,0.1));
+    border: 1px solid var(--glass-border);
+  }
+
+  /* Content */
+  .project-content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+  .project-layout { display: grid; grid-template-columns: 1fr 380px; gap: 3rem; padding: 3rem 0 5rem; align-items: start; }
+  .project-main { }
+  .project-sidebar { }
+  .project-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 1rem; line-height: 1.2; }
+  .project-title span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; }
+  .tag { background: rgba(108,99,255,0.12); color: var(--accent); padding: 5px 14px; border-radius: 50px; font-size: 0.8rem; font-weight: 500; border: 1px solid rgba(108,99,255,0.2); }
+
+  .section-subtitle { font-size: 1.1rem; font-weight: 700; color: var(--accent2); margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); }
+  .description-text { color: var(--text-muted); line-height: 1.9; font-size: 0.97rem; }
+  .description-text + .description-text { margin-top: 1rem; }
+
+  /* Features */
+  .features-list { list-style: none; }
+  .features-list li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .features-list li::before { content: '✦'; color: var(--accent); font-size: 0.7rem; margin-top: 4px; flex-shrink: 0; }
+
+  /* Sidebar */
+  .sidebar-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .sidebar-card-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+    background: var(--gradient); color: #fff; border-radius: 12px; text-decoration: none;
+    font-weight: 600; font-size: 0.9rem; transition: all 0.3s; margin-bottom: 0.75rem;
+  }
+  .sidebar-link:last-child { margin-bottom: 0; }
+  .sidebar-link.secondary { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); }
+  .sidebar-link:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .sidebar-link.secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.88rem; }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { color: var(--text-muted); }
+  .info-val { font-weight: 600; color: var(--accent2); }
+
+  /* Back buttons */
+  .back-btns { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
+  .btn-back { display: inline-flex; align-items: center; gap: 8px; background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); padding: 12px 24px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.3s; font-size: 0.9rem; }
+  .btn-back:hover { border-color: var(--accent); color: var(--accent); transform: translateX(-4px); }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s; }
+  .reveal.visible { opacity: 1; transform: none; }
+  footer { background: var(--bg3); border-top: 1px solid var(--glass-border); padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  footer span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600; }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────── */
+
+  /* Tablet landscape (≤1024px) */
+  @media (max-width: 1024px) {
+    .project-layout { grid-template-columns: 1fr; gap: 2rem; }
+    .project-sidebar { position: static; }
+    .section-inner { padding: 0 1rem; }
+  }
+
+  /* Tablet portrait (≤900px) */
+  @media (max-width: 900px) {
+    .project-layout { grid-template-columns: 1fr; }
+    .project-img-hero { max-height: 320px; object-fit: cover; border-radius: 16px; }
+    .project-hero { padding: 80px 1.5rem 40px; }
+    .project-hero-title { font-size: clamp(1.6rem, 5vw, 2.5rem); }
+  }
+
+  /* Mobile (≤768px) */
+  @media (max-width: 768px) {
+    .nav-links { display: none; flex-direction: column; position: fixed; top: 70px; left: 0; right: 0; background: rgba(5,8,22,0.98); border-bottom: 1px solid var(--glass-border); padding: 1rem 0; z-index: 999; }
+    .nav-links.open { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links a { display: block; padding: 12px 2rem !important; font-size: 1rem; }
+    .hamburger { display: flex; }
+
+    .project-hero { padding: 80px 1.2rem 30px; }
+    .project-hero-title { font-size: clamp(1.4rem, 5vw, 2rem); }
+    .project-img-hero { max-height: 260px; }
+
+    .project-content { padding: 0; }
+    .project-section { padding: 1.2rem; margin-bottom: 1rem; }
+    .tech-tags { gap: 0.5rem; }
+    .tech-tag { font-size: 0.75rem; padding: 4px 12px; }
+
+    .back-section { flex-wrap: wrap; gap: 0.8rem; }
+    .btn-back { padding: 10px 18px; font-size: 0.9rem; }
+
+    .project-links-box { padding: 1.2rem; }
+    .project-links-box a { width: 100%; justify-content: center; }
+
+    section { padding: 40px 1.2rem; }
+  }
+
+  /* Small mobile (≤480px) */
+  @media (max-width: 480px) {
+    .logo { font-size: 1rem; max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .project-hero-title { font-size: 1.4rem; }
+    .project-img-hero { max-height: 220px; }
+    .tech-tag { font-size: 0.7rem; padding: 3px 10px; }
+    .breadcrumb { font-size: 0.75rem; }
+    .project-section h3 { font-size: 1rem; }
+    footer { padding: 1.5rem 1rem; font-size: 0.8rem; }
+  }
+
+  /* Very small (≤360px) */
+  @media (max-width: 360px) {
+    .project-hero-title { font-size: 1.2rem; }
+    .tech-tag { font-size: 0.65rem; }
+    .btn-back { font-size: 0.8rem; padding: 8px 14px; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">{% if profile %}{{ profile.name }}{% else %}Karthick Balaji T{% endif %}</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about/">About</a></li>
+      <li><a href="/projects/">Projects</a></li>
+      <li><a href="/contact/">Contact</a></li>
+      <li><a href="/download-resume/" class="nav-resume">Resume ↓</a></li>
+    </ul>
+    <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<div class="project-hero">
+  <div class="hero-inner">
+    <div class="breadcrumb">
+      <a href="/">Home</a> <span>/</span>
+      <a href="/projects/">Projects</a> <span>/</span>
+      <span>{{ project.title }}</span>
+    </div>
+    {% if project.project_image %}
+      <img src="{{ project.project_image.url }}" alt="{{ project.title }}" class="project-img-hero">
+    {% else %}
+      <div class="project-img-placeholder-hero">🚀</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="project-content">
+  <div class="project-layout">
+    <!-- Main -->
+    <div class="project-main">
+      <h1 class="project-title reveal">{{ project.title }}</h1>
+      <div class="project-tags reveal">
+        {% for tech in project.get_tech_list %}
+          <span class="tag">{{ tech }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="reveal">
+        <div class="section-subtitle">📋 Project Overview</div>
+        <p class="description-text">{{ project.short_description }}</p>
+      </div>
+
+      {% if project.full_description %}
+      <div class="reveal">
+        <div class="section-subtitle">📖 Full Description</div>
+        <p class="description-text">{{ project.full_description|linebreaksbr }}</p>
+      </div>
+      {% endif %}
+
+      {% if project.get_features_list %}
+      <div class="reveal">
+        <div class="section-subtitle">✨ Key Features</div>
+        <ul class="features-list">
+          {% for feature in project.get_features_list %}
+          <li>{{ feature }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="back-btns reveal" style="margin-top:3rem">
+        <a href="/projects/" class="btn-back">← Back to Projects</a>
+        <a href="/" class="btn-back">🏠 Home</a>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="project-sidebar reveal">
+      {% if project.github_link or project.live_demo_link %}
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">🔗 Links</div>
+        {% if project.github_link %}
+          <a href="{{ project.github_link }}" target="_blank" class="sidebar-link">🐙 View on GitHub</a>
+        {% endif %}
+        {% if project.live_demo_link %}
+          <a href="{{ project.live_demo_link }}" target="_blank" class="sidebar-link secondary">🌐 Live Demo</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">ℹ️ Project Info</div>
+        <div class="info-row"><span class="info-key">Status</span><span class="info-val">Completed</span></div>
+        {% if project.created_at %}
+        <div class="info-row"><span class="info-key">Year</span><span class="info-val">{{ project.created_at.year }}</span></div>
+        {% endif %}
+        <div class="info-row"><span class="info-key">Type</span><span class="info-val">Web Application</span></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">🛠️ Tech Stack</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          {% for tech in project.get_tech_list %}
+            <span class="tag">{{ tech }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 <span>{% if profile %}{{ profile.name }}{% else %}Karthick Balaji{% endif %}</span>. Built with Django &amp; ❤️</p>
+</footer>
+
+<script>
+  document.getElementById('hamburger').addEventListener('click', function() {
+    this.classList.toggle('open');
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

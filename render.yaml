@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: portfolio
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn portfolio.wsgi"
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: portfolio-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: RENDER_EXTERNAL_URL
+        value: https://YOUR-APP-NAME.onrender.com   # ← change this
+
+      # ── Admin superuser (set these in Render Dashboard) ──────────────
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false    # set manually in dashboard
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+
+      # ── Cloudinary (for persistent media/images) ──────────────────────
+      - key: CLOUDINARY_URL
+        sync: false    # set manually in dashboard
+
+      # ── Gmail SMTP ────────────────────────────────────────────────────
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: CONTACT_RECEIVER_EMAIL
+        sync: false
+
+databases:
+  - name: portfolio-db
+    databaseName: portfolio
+    user: portfolio
+    plan: free          # persistent PostgreSQL on Render free tier

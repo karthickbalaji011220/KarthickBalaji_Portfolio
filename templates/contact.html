@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact - {% if profile %}{{ profile.name }}{% else %}Portfolio{% endif %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #050816; --bg2: #0a0f2e; --bg3: #0d1333;
+    --accent: #6c63ff; --accent2: #00d4ff; --accent3: #ff6584;
+    --glass: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.08);
+    --text: #e2e8f0; --text-muted: #94a3b8;
+    --gradient: linear-gradient(135deg, #6c63ff, #00d4ff);
+    --gradient2: linear-gradient(135deg, #ff6584, #6c63ff);
+    --shadow: 0 8px 32px rgba(108,99,255,0.2);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(0,212,255,0.06) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(255,101,132,0.05) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(5,8,22,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 0 2rem; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .logo { font-size: 1.5rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+  .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s; position: relative; padding: 4px 0; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--gradient); transition: width 0.3s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+  .nav-resume { background: var(--gradient); color: #fff !important; padding: 8px 20px !important; border-radius: 50px; font-weight: 600 !important; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { display: block; width: 25px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.3s; }
+  .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+  .page-hero { padding: 140px 2rem 60px; background: linear-gradient(to bottom, var(--bg3), var(--bg)); border-bottom: 1px solid var(--glass-border); position: relative; z-index: 1; text-align: center; }
+  .page-hero-inner { max-width: 700px; margin: 0 auto; }
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; justify-content: center; }
+  .breadcrumb a { color: var(--accent2); text-decoration: none; }
+  .page-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; margin-bottom: 1rem; }
+  .page-title span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .page-subtitle { color: var(--text-muted); font-size: 1.1rem; line-height: 1.7; }
+
+  .content { position: relative; z-index: 1; padding: 60px 2rem 80px; }
+  .section-inner { max-width: 1000px; margin: 0 auto; }
+
+  /* Contact cards */
+  .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+  .contact-card {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 20px; padding: 2rem; transition: all 0.4s; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .contact-card::before { content: ''; position: absolute; inset: 0; background: var(--gradient); opacity: 0; transition: opacity 0.3s; }
+  .contact-card:hover { transform: translateY(-8px); border-color: rgba(108,99,255,0.4); box-shadow: 0 25px 50px rgba(108,99,255,0.15); }
+  .contact-card:hover::before { opacity: 0.03; }
+  .contact-card-icon {
+    width: 64px; height: 64px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; margin-bottom: 1.25rem; position: relative; z-index: 1;
+  }
+  .icon-email { background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(0,212,255,0.2)); border: 1px solid rgba(108,99,255,0.3); }
+  .icon-phone { background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(108,99,255,0.2)); border: 1px solid rgba(0,212,255,0.3); }
+  .icon-location { background: linear-gradient(135deg, rgba(255,101,132,0.2), rgba(108,99,255,0.2)); border: 1px solid rgba(255,101,132,0.3); }
+  .icon-linkedin { background: linear-gradient(135deg, rgba(0,119,181,0.2), rgba(108,99,255,0.2)); border: 1px solid rgba(0,119,181,0.3); }
+  .icon-github { background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(108,99,255,0.2)); border: 1px solid rgba(255,255,255,0.15); }
+  .icon-portfolio { background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(255,101,132,0.2)); border: 1px solid rgba(108,99,255,0.3); }
+  .contact-card-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 0.5rem; position: relative; z-index: 1; }
+  .contact-card-value { font-weight: 600; font-size: 1rem; color: var(--text); position: relative; z-index: 1; word-break: break-all; }
+  .contact-card-link { text-decoration: none; color: var(--accent2); }
+  .contact-card-link:hover { color: var(--accent); }
+
+  /* CTA */
+  .cta-box {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 24px; padding: 3rem; text-align: center; position: relative; overflow: hidden;
+    margin-bottom: 3rem;
+  }
+  .cta-box::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,0.1), transparent 70%); }
+  .cta-title { font-size: 2rem; font-weight: 800; margin-bottom: 1rem; position: relative; z-index: 1; }
+  .cta-title span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .cta-text { color: var(--text-muted); margin-bottom: 2rem; font-size: 1rem; line-height: 1.7; position: relative; z-index: 1; }
+  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+  .btn-primary { background: var(--gradient); color: #fff; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(108,99,255,0.4); }
+  .btn-secondary { background: transparent; color: var(--text); padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.95rem; border: 1px solid var(--glass-border); transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-3px); }
+
+  /* Back */
+  .back-section { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-back { display: inline-flex; align-items: center; gap: 8px; background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); padding: 12px 24px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+  .btn-back:hover { border-color: var(--accent); color: var(--accent); transform: translateX(-4px); }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s; }
+  .reveal.visible { opacity: 1; transform: none; }
+  footer { background: var(--bg3); border-top: 1px solid var(--glass-border); padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  footer span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600; }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────── */
+
+  /* Tablet (≤1024px) */
+  @media (max-width: 1024px) {
+    .contact-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .section-inner { padding: 0 1rem; }
+  }
+
+  /* Mobile (≤768px) */
+  @media (max-width: 768px) {
+    .nav-links { display: none; flex-direction: column; position: fixed; top: 70px; left: 0; right: 0; background: rgba(5,8,22,0.98); border-bottom: 1px solid var(--glass-border); padding: 1rem 0; z-index: 999; }
+    .nav-links.open { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links a { display: block; padding: 12px 2rem !important; font-size: 1rem; }
+    .hamburger { display: flex; }
+
+    .page-hero { padding: 80px 1.2rem 40px; }
+    .page-title { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+    .page-subtitle { font-size: 0.9rem; }
+
+    .contact-grid { grid-template-columns: 1fr; }
+    .contact-card { padding: 1.2rem; }
+    .contact-card-icon { width: 44px; height: 44px; font-size: 1.1rem; }
+
+    .cta-box { padding: 2rem 1.2rem; border-radius: 16px; }
+    .cta-title { font-size: clamp(1.4rem, 5vw, 2rem); }
+    .cta-btns { flex-direction: column; align-items: center; gap: 1rem; }
+    .cta-btns .btn-primary,
+    .cta-btns .btn-secondary { width: 100%; max-width: 280px; justify-content: center; text-align: center; }
+
+    section { padding: 50px 1.2rem; }
+  }
+
+  /* Small mobile (≤480px) */
+  @media (max-width: 480px) {
+    .logo { font-size: 1rem; max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .contact-card-label { font-size: 0.75rem; }
+    .contact-card-value { font-size: 0.9rem; word-break: break-all; }
+    .cta-btns .btn-primary,
+    .cta-btns .btn-secondary { max-width: 100%; }
+    footer { padding: 1.5rem 1rem; font-size: 0.8rem; }
+  }
+
+  /* Very small (≤360px) */
+  @media (max-width: 360px) {
+    .page-title { font-size: 1.6rem; }
+    .cta-title { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">{% if profile %}{{ profile.name }}{% else %}Karthick Balaji T{% endif %}</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about/">About</a></li>
+      <li><a href="/projects/">Projects</a></li>
+      <li><a href="/contact/" class="active">Contact</a></li>
+      <li><a href="/download-resume/" class="nav-resume">Resume ↓</a></li>
+    </ul>
+    <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb"><a href="/">Home</a> <span>/</span> <span>Contact</span></div>
+    <h1 class="page-title">Get In <span>Touch</span></h1>
+    <p class="page-subtitle">I'm currently open to new opportunities. Whether you have a project in mind, want to collaborate, or just want to say hi — my inbox is always open!</p>
+  </div>
+</div>
+
+<div class="content">
+  <div class="section-inner">
+    {% if profile %}
+    <div class="contact-grid">
+      {% if profile.name %}
+      <div class="contact-card reveal">
+        <div class="contact-card-icon icon-portfolio">👤</div>
+        <div class="contact-card-label">Name</div>
+        <div class="contact-card-value">{{ profile.name }}</div>
+      </div>
+      {% endif %}
+      {% if profile.email %}
+      <div class="contact-card reveal">
+        <div class="contact-card-icon icon-email">✉️</div>
+        <div class="contact-card-label">Email</div>
+        <div class="contact-card-value"><a href="mailto:{{ profile.email }}" class="contact-card-link">{{ profile.email }}</a></div>
+      </div>
+      {% endif %}
+      {% if profile.phone %}
+      <div class="contact-card reveal">
+        <div class="contact-card-icon icon-phone">📱</div>
+        <div class="contact-card-label">Phone</div>
+        <div class="contact-card-value"><a href="tel:{{ profile.phone }}" class="contact-card-link">{{ profile.phone }}</a></div>
+      </div>
+      {% endif %}
+      {% if profile.location %}
+      <div class="contact-card reveal">
+        <div class="contact-card-icon icon-location">📍</div>
+        <div class="contact-card-label">Location</div>
+        <div class="contact-card-value">{{ profile.location }}</div>
+      </div>
+      {% endif %}
+      {% if profile.linkedin %}
+      <div class="contact-card reveal">
+        <div class="contact-card-icon icon-linkedin">💼</div>
+        <div class="contact-card-label">LinkedIn</div>
+        <div class="contact-card-value"><a href="{{ profile.linkedin }}" target="_blank" class="contact-card-link">Connect on LinkedIn</a></div>
+      </div>
+      {% endif %}
+      {% if profile.github %}
+      <div class="contact-card reveal">
+        <div class="contact-card-icon icon-github">🐙</div>
+        <div class="contact-card-label">GitHub</div>
+        <div class="contact-card-value"><a href="{{ profile.github }}" target="_blank" class="contact-card-link">View My GitHub</a></div>
+      </div>
+      {% endif %}
+      {% if profile.portfolio_url %}
+      <div class="contact-card reveal">
+        <div class="contact-card-icon icon-portfolio">🌐</div>
+        <div class="contact-card-label">Portfolio</div>
+        <div class="contact-card-value"><a href="{{ profile.portfolio_url }}" target="_blank" class="contact-card-link">{{ profile.portfolio_url }}</a></div>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <p style="text-align:center;color:var(--text-muted);margin-bottom:3rem">Add contact information via Django Admin.</p>
+    {% endif %}
+
+    <div class="cta-box reveal">
+      <div class="cta-title">Let's <span>Work Together</span></div>
+      <p class="cta-text">I'm available for full-time roles, freelance projects, and open-source collaborations. Reach out and let's build something amazing together!</p>
+      <div class="cta-btns">
+        <button class="btn-primary" onclick="document.getElementById('contactModal').style.display='flex'">✉️ Send Email</button>
+        <a href="/download-resume/" class="btn-secondary">⬇ Download Resume</a>
+      </div>
+    </div>
+
+    <!-- ── Contact Form Modal ───────────────────────────────────────── -->
+    <div id="contactModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;">
+      <div style="background:var(--bg2);border:1px solid var(--glass-border);border-radius:20px;padding:clamp(1.5rem,5vw,2.5rem);width:100%;max-width:520px;position:relative;box-shadow:0 30px 80px rgba(0,0,0,0.5);margin:auto;">
+        <button onclick="closeModal()" style="position:absolute;top:1rem;right:1.2rem;background:none;border:none;color:var(--text-muted);font-size:1.5rem;cursor:pointer;line-height:1;">✕</button>
+        <h2 style="margin:0 0 0.3rem;font-size:1.5rem;">Send a Message</h2>
+        <p style="color:var(--text-muted);margin:0 0 1.8rem;font-size:0.9rem;">I'll get back to you as soon as possible.</p>
+
+        <div id="formAlert" style="display:none;padding:0.9rem 1.2rem;border-radius:10px;margin-bottom:1.2rem;font-size:0.9rem;"></div>
+
+        <form id="contactForm">
+          {% csrf_token %}
+          <div style="margin-bottom:1.1rem;">
+            <label style="display:block;margin-bottom:0.4rem;font-size:0.85rem;color:var(--text-muted);">Your Name *</label>
+            <input type="text" name="name" placeholder="Karthick Balaji" required
+              style="width:100%;padding:0.75rem 1rem;background:var(--bg3);border:1px solid var(--glass-border);border-radius:10px;color:var(--text);font-size:0.95rem;outline:none;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:1.1rem;">
+            <label style="display:block;margin-bottom:0.4rem;font-size:0.85rem;color:var(--text-muted);">Email Address *</label>
+            <input type="email" name="email" placeholder="you@example.com" required
+              style="width:100%;padding:0.75rem 1rem;background:var(--bg3);border:1px solid var(--glass-border);border-radius:10px;color:var(--text);font-size:0.95rem;outline:none;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:1.1rem;">
+            <label style="display:block;margin-bottom:0.4rem;font-size:0.85rem;color:var(--text-muted);">Subject *</label>
+            <input type="text" name="subject" placeholder="Job Opportunity / Collaboration" required
+              style="width:100%;padding:0.75rem 1rem;background:var(--bg3);border:1px solid var(--glass-border);border-radius:10px;color:var(--text);font-size:0.95rem;outline:none;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.4rem;font-size:0.85rem;color:var(--text-muted);">Message *</label>
+            <textarea name="message" rows="5" placeholder="Hi Karthick, I'd like to discuss..." required
+              style="width:100%;padding:0.75rem 1rem;background:var(--bg3);border:1px solid var(--glass-border);border-radius:10px;color:var(--text);font-size:0.95rem;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+          </div>
+          <button type="submit" id="submitBtn"
+            style="width:100%;padding:0.9rem;background:var(--gradient);border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
+            ✉️ Send Message
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function closeModal() {
+        document.getElementById('contactModal').style.display = 'none';
+        document.getElementById('formAlert').style.display = 'none';
+        document.getElementById('contactForm').reset();
+      }
+      // Close on backdrop click
+      document.getElementById('contactModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      document.getElementById('contactForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const alert = document.getElementById('formAlert');
+        btn.textContent = 'Sending…';
+        btn.disabled = true;
+
+        const formData = new FormData(this);
+        try {
+          const res = await fetch('/contact/send/', { method: 'POST', body: formData });
+          const data = await res.json();
+          alert.style.display = 'block';
+          if (data.success) {
+            alert.style.background = 'rgba(0,255,136,0.1)';
+            alert.style.border = '1px solid rgba(0,255,136,0.3)';
+            alert.style.color = '#00ff88';
+            alert.textContent = '✅ ' + data.message;
+            this.reset();
+            setTimeout(closeModal, 2500);
+          } else {
+            alert.style.background = 'rgba(255,101,132,0.1)';
+            alert.style.border = '1px solid rgba(255,101,132,0.3)';
+            alert.style.color = '#ff6584';
+            alert.textContent = '❌ ' + (data.error || 'Something went wrong. Try again.');
+          }
+        } catch(err) {
+          alert.style.display = 'block';
+          alert.style.background = 'rgba(255,101,132,0.1)';
+          alert.style.border = '1px solid rgba(255,101,132,0.3)';
+          alert.style.color = '#ff6584';
+          alert.textContent = '❌ Network error. Please try again.';
+        }
+        btn.textContent = '✉️ Send Message';
+        btn.disabled = false;
+      });
+    </script>
+
+    <div class="back-section reveal">
+      <a href="/" class="btn-back">← Back to Home</a>
+      <a href="/projects/" class="btn-back">🚀 View Projects</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 <span>{% if profile %}{{ profile.name }}{% else %}Karthick Balaji{% endif %}</span>. Built with Django &amp; ❤️</p>
+</footer>
+
+<script>
+  document.getElementById('hamburger').addEventListener('click', function() {
+    this.classList.toggle('open');
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => { if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 80); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
