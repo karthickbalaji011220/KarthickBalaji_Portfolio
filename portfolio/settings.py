@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'cloudinary',
+    'cloudinary_storage',
     'website',
 ]
 
@@ -104,21 +106,20 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ── Media files ────────────────────────────────────────────────────────────────
-# On Render free tier, local media is LOST on each deploy.
-# Use Cloudinary for persistent image/file storage.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary for persistent image/file storage on Render
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')  # set in Render env vars
 
 if CLOUDINARY_URL:
-    import cloudinary
-    import cloudinary.uploader
-    import cloudinary_storage
-    INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
+    # Parse the CLOUDINARY_URL automatically
+    cloudinary.config(cloudinary_url=CLOUDINARY_URL)
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = '/media/'
-else:
-    # Local development – serve from disk
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
